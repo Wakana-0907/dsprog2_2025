@@ -1,0 +1,34 @@
+.vscode
+.python-version
+
+# brew関連
+brew update
+brew outdated
+brew upgrade pyenv
+brew install sqlite
+brew install reqeuests
+
+# 未インストールの人のみ
+pyenv install 3.12.12
+
+# ディレクトリ内で使うPythonのバージョン指定
+pyenv local 3.12.12
+
+# バージョン確認
+python -V
+
+# 仮想環境作成
+python -m venv .venv
+
+# 仮想環境をアクティベート
+source .venv/bin/activate
+
+# ライブラリ確認
+pip list
+
+# 必要ライブラリのインストール
+pip install --upgrade pip
+pip install jupyter
+pip install requests
+pip install pandas
+pip install matplotlib
