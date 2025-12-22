@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purple Weather App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-purple: #9d7af2;
+            --light-purple: #e0d7ff;
+            --bg-purple: #f3f0ff;
+            --accent-purple: #6c4ab6;
+        }
+        body {
+            font-family: 'Kosugi Maru', sans-serif;
+            background: linear-gradient(135deg, #dcd1ff 0%, #f3f0ff 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a3a75;
+        }
+        .app-container {
+            background: white;
+            width: 95%;
+            max-width: 450px;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(157, 122, 242, 0.2);
+            border: 3px solid var(--light-purple);
+        }
+        h2 { text-align: center; color: var(--accent-purple); margin-top: 0; }
+        
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 20px;
+            border: 2px solid var(--main-purple);
+            background: white;
+            color: var(--accent-purple);
+            font-size: 1rem;
+            outline: none;
+            margin-bottom: 20px;
+        }
+
+        /* 週間リスト */
+        .forecast-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .day-card {
+            background: var(--bg-purple);
+            border-radius: 18px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .day-card:hover {
+            transform: scale(1.02);
+            border-color: var(--main-purple);
+        }
+        .day-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .day-info { display: flex; align-items: center; gap: 10px; }
+        .date { font-size: 0.8rem; color: #7a68a6; width: 60px; }
+        .icon { font-size: 1.8rem; }
+        .temp { font-weight: bold; color: var(--accent-purple); font-size: 1.1rem; }
+
+        /* 詳細エリア（最初は隠す） */
+        .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+            font-size: 0.85rem;
+            color: #665a8a;
+            padding-top: 0;
+            line-height: 1.4;
+        }
+        .day-card.active .details {
+            max-height: 100px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--main-purple);
+            margin-top: 10px;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--main-purple);
+            border-radius: 50%;
+            width: 30px; height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2>天気予報</h2>
+    
+    <select id="areaSelect">
+        <option value="">エリアをさがし中...</option>
+    </select>
+
+    <div id="weatherResult">
+        <p style="text-align: center; opacity: 0.6;">どこにする？</p>
+    </div>
+</div>
+
+<script>
+    const areaSelect = document.getElementById('areaSelect');
+    const weatherResult = document.getElementById('weatherResult');
+
+    function getWeatherEmoji(text) {
+        if (text.includes('晴')) return '☀️';
+        if (text.includes('雨')) return '☔';
+        if (text.includes('曇')) return '☁️';
+        if (text.includes('雪')) return '❄️';
+        return '✨';
+    }
+
+    async function init() {
+        try {
+            const res = await fetch("https://www.jma.go.jp/bosai/common/const/area.json");
+            const data = await res.json();
+            areaSelect.innerHTML = '<option value="">地域をえらんでね</option>';
+            Object.entries(data.offices).forEach(([code, info]) => {
+                areaSelect.add(new Option(info.name, code));
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    async function fetchWeather(code) {
+        if (!code) return;
+        weatherResult.innerHTML = '<div class="loader"></div>';
+
+        try {
+            const res = await fetch(`https://www.jma.go.jp/bosai/forecast/data/forecast/${code}.json`);
+            const data = await res.json();
+            
+            // data[0]は3日分、data[1]は1週間分の予報が入っています
+            const weekData = data[1].timeSeries[0];
+            const areaName = data[0].publishingOffice;
+            
+            let html = `<p style="text-align:center; font-size:0.8rem;">📍 ${areaName} はっぴょう</p>`;
+            html += '<div class="forecast-list">';
+
+            weekData.timeDefines.forEach((time, i) => {
+                const dateObj = new Date(time);
+                const dateStr = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+                const dayStr = dateObj.toLocaleDateString('ja-JP', {weekday: 'short'});
+                
+                // 1週間予報の天気コードから天気を推測（簡易版）
+                // 実際は天気コード表がありますが、今回は簡単に文字情報から取得
+                const weatherText = data[0].timeSeries[0].areas[0].weathers[i] || "詳しくは詳細をみてね";
+                const emoji = getWeatherEmoji(weatherText);
+
+                html += `
+                    <div class="day-card" onclick="this.classList.toggle('active')">
+                        <div class="day-summary">
+                            <div class="day-info">
+                                <span class="date">${dateStr}(${dayStr})</span>
+                                <span class="icon">${emoji}</span>
+                            </div>
+                            <span class="temp">予報</span>
+                        </div>
+                        <div class="details">
+                            ${weatherText}<br>
+                            <small>※タップでとじる</small>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            weatherResult.innerHTML = html;
+
+        } catch (e) {
+            weatherResult.innerHTML = 'エラーになっちゃった... ☂️';
+        }
+    }
+
+    areaSelect.onchange = (e) => fetchWeather(e.target.value);
+    init();
+</script>
+
+</body>
+</html>
