@@ -1,2 +1,13 @@
 .vscode
 .python-version
+weather-app-db/
+├── app.py              # Flaskバックエンド
+├── database.py         # DB操作
+├── models.py           # DBモデル定義
+├── weather_api.py      # 気象庁API連携
+├── static/
+│   └── style.css      # スタイルシート
+├── templates/
+│   └── index.html     # フロントエンド
+├── requirements.txt    # 依存パッケージ
+└── README.md          # プロジェクト説明
