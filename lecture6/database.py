@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime, date
 from typing import List
-from models import Area, Forecast
+from lecture6.models import Area, Forecast
 
 class WeatherDatabase:
     def __init__(self, db_path: str = "weather.db"):

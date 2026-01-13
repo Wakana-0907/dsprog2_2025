@@ -3,8 +3,8 @@ import requests
 from datetime import datetime, date
 import webbrowser
 from threading import Timer
-from database import WeatherDatabase
-from models import Area, Forecast
+from lecture6.database import WeatherDatabase
+from lecture6.models import Area, Forecast
 
 app = Flask(__name__)
 db = WeatherDatabase()
