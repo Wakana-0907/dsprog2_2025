@@ -11,3 +11,4 @@ weather-app-db/
 │   └── index.html     # フロントエンド
 ├── requirements.txt    # 依存パッケージ
 └── README.md          # プロジェクト説明
+.DS_Store
