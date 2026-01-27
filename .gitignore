@@ -12,3 +12,4 @@ weather-app-db/
 ├── requirements.txt    # 依存パッケージ
 └── README.md          # プロジェクト説明
 .DS_Store
+config.py
